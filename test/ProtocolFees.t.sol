@@ -262,15 +262,15 @@ contract ProtocolFeesTest is Test, GasSnapshot, ProtocolFees {
     }
 
     function test_fetchProtocolFee_revertsGasLeftUnderGasLimit() external {
-        // Arrange
-        uint reducedGas = testGasLimit - 1; // 1 less than the controllerGasLimit
-        assembly {
-            mstore(0, reducedGas)
-            return(0, 32)
+        if (msg.sender != address(0x1)) {
+            // Arrange
+            vm.prank(address(0x1));
+            uint reducedGas = testGasLimit - 1; // 1 less than the controllerGasLimit
+            ProtocolFeesTest(address(this)).test_fetchProtocolFee_revertsGasLeftUnderGasLimit{gas: reducedGas}();
+        } else {
+            // Expect
+            vm.expectRevert(ProtocolFeeCannotBeFetched.selector);
         }
-
-        // Expect
-        vm.expectRevert(ProtocolFeeCannotBeFetched.selector);
 
         // Act
         _fetchProtocolFee(key);
